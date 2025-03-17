@@ -113,21 +113,22 @@ class AuthService:
         if not check_password_hash(login_method.password, password):
             raise InputValidationError('Incorrect email or password.')
         
-        access_token = self.generate_access_token(login_method)
+        access_token, expiry = self.generate_access_token(login_method)
 
-        return access_token
+        return access_token, expiry
 
     def generate_access_token(self, login_method: LoginMethod) -> str:
+        expiry = time.time() + int(self.config.ACCESS_TOKEN_EXPIRE)
         token = jwt.encode(
             {
                 'email_id': login_method.email_id,
                 'person_id': login_method.person_id,
-                'exp': time.time() + int(self.config.ACCESS_TOKEN_EXPIRE),
+                'exp': expiry,
             },
             self.config.AUTH_JWT_SECRET,
             algorithm='HS256'
         )
-        return token
+        return token, expiry
 
     def parse_access_token(self, access_token: str) -> dict:
         try:
@@ -210,5 +211,5 @@ class AuthService:
         login_method = self.login_method_service.update_password(login_method, new_login_method.password)
         email_obj = self.email_service.verify_email(email_obj)
 
-        access_token = self.generate_access_token(login_method)
-        return access_token, person_obj
+        access_token, expiry = self.generate_access_token(login_method)
+        return access_token, expiry, person_obj

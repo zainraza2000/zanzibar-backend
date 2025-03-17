@@ -23,4 +23,4 @@ class EmailService:
 
     def verify_email(self, email: Email) -> Email:
         email.is_verified = True
-        return email.save()
+        return self.save_email(email)

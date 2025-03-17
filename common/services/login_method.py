@@ -24,4 +24,4 @@ class LoginMethodService:
 
     def update_password(self, login_method: LoginMethod, password: str) -> LoginMethod:
         login_method.password = password
-        return login_method.save()
+        return self.login_method_repo.save(login_method)
