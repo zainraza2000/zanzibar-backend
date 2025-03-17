@@ -54,7 +54,7 @@ class Login(Resource):
         validate_required_fields(parsed_body)
 
         auth_service = AuthService(config)
-        access_token = auth_service.login_user_by_email_password(
+        access_token, expiry = auth_service.login_user_by_email_password(
             parsed_body['email'], 
             parsed_body['password']
         )
@@ -62,7 +62,7 @@ class Login(Resource):
         person_service = PersonService(config)
         person = person_service.get_person_by_email_address(email_address=parsed_body['email'])
 
-        return get_success_response(person=person.as_dict(), access_token=access_token)
+        return get_success_response(person=person.as_dict(), access_token=access_token, expiry=expiry)
 
 
 @auth_api.route('/forgot_password', doc=dict(description="Send reset password link"))
@@ -97,9 +97,10 @@ class ResetPassword(Resource):
         validate_required_fields(parsed_body)
 
         auth_service = AuthService(config)
-        access_token, person_obj = auth_service.reset_user_password(token, uidb64, parsed_body.get('password'))
+        access_token, expiry, person_obj = auth_service.reset_user_password(token, uidb64, parsed_body.get('password'))
         return get_success_response(
             message="Your password has been updated!", 
             access_token=access_token, 
-            person=person_obj.asdict()
+            expiry=expiry,
+            person=person_obj.as_dict()
         )
