@@ -1,3 +1,8 @@
+import time
+
+import jwt
+from werkzeug.security import check_password_hash
+
 from common.services import (
     PersonService, EmailService, LoginMethodService, OrganizationService,
     PersonOrganizationRoleService
@@ -7,14 +12,10 @@ from common.models.login_method import LoginMethodType
 from common.tasks.send_message import MessageSender
 from common.app_logger import logger
 
-from werkzeug.security import check_password_hash
+from common.helpers.string_utils import urlsafe_base64_encode, force_bytes
+from common.helpers.string_utils import force_str, urlsafe_base64_decode
+from common.helpers.exceptions import InputValidationError, APIException
 
-import jwt
-import time
-
-from app.helpers.string_utils import urlsafe_base64_encode, force_bytes
-from app.helpers.string_utils import force_str, urlsafe_base64_decode
-from app.helpers.exceptions import InputValidationError, APIException
 
 
 class AuthService:
