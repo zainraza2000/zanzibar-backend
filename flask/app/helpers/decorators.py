@@ -7,12 +7,8 @@ from inspect import signature
 from common.app_logger import logger
 from common.app_config import config
 
-from common.services.email import EmailService
-from common.services.person import PersonService
-from common.services.auth import AuthService
-from common.services.auth import AuthService
 from common.services import OrganizationService, PersonOrganizationRoleService
-
+from common.helpers.auth import parse_access_token, create_person_from_token, create_email_from_token
 
 
 def login_required():
@@ -21,27 +17,21 @@ def login_required():
         def wrapper(self, *args, **kwargs):
             if 'Authorization' not in request.headers:
                 return get_failure_response(message="Authorization header not present", status_code=401)
-            
-            auth_service = AuthService(config)
-            email_service = EmailService(config)
-            person_service = PersonService(config)
 
             data = request.headers['Authorization']
             token = str.replace(str(data), 'Bearer ', '')
             try:
-                parsed_token = auth_service.parse_access_token(token)
+                parsed_token = parse_access_token(token)
 
                 if not parsed_token:
                     return get_failure_response(message='Access token is invalid', status_code=401)
 
-                person_id = parsed_token.get('person_id')
-                email_id = parsed_token.get('email_id')
-
-                email = email_service.get_email_by_id(email_id)
-                person = person_service.get_person_by_id(person_id)
+                person = create_person_from_token(parsed_token)
+                email = create_email_from_token(parsed_token)
 
                 g.person = person
                 g.email = email
+                g.current_user_id = person.entity_id  # for auditing
 
             except Exception as e:
                 logger.exception(e)
@@ -70,7 +60,7 @@ def organization_required(with_roles=None):
         def wrapper(self, *args, **kwargs):
             if 'x-organization-id' not in request.headers:
                 return get_failure_response(message="x-organization-id header is not present", status_code=401)
-            
+
             person = getattr(g, 'person', None)
 
             if not person:
@@ -83,7 +73,7 @@ def organization_required(with_roles=None):
             organization = organization_service.get_organization_by_id(organization_id)
             if not organization:
                 return get_failure_response(message='Organization ID is invalid', status_code=403)
-            
+
             person_organization_role = person_organization_role_service.get_role_of_person_in_organization(
                 person_id=person.entity_id,
                 organization_id=organization.entity_id
@@ -95,7 +85,7 @@ def organization_required(with_roles=None):
             if with_roles is not None:
                 if person_organization_role.role not in with_roles:
                     return get_failure_response(
-                        message="User is not authroized to perform this operation on this organization.", 
+                        message="User is not authroized to perform this operation on this organization.",
                         status_code=403
                     )
 
