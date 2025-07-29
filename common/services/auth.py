@@ -121,19 +121,6 @@ class AuthService:
 
         return access_token, expiry
 
-    def parse_access_token(self, access_token: str) -> dict:
-        try:
-            decoded_token = jwt.decode(
-                access_token,
-                self.config.AUTH_JWT_SECRET,
-                algorithms=['HS256']
-            )
-            exp_time = decoded_token['exp']
-            if time.time() <= exp_time:
-                return decoded_token
-        except jwt.ExpiredSignatureError:
-            return
-
     @staticmethod
     def parse_reset_password_token(token, login_method: LoginMethod):
         try:
