@@ -103,6 +103,13 @@ class RepositoryFactory:
         message_adapter = self.get_adapter()
         repo_class = self._repositories.get(repo_type)
 
+        if person_id is None:
+            try:
+                from flask import g
+                person_id = getattr(g, 'current_user_id', None)
+            except (ImportError, RuntimeError):
+                pass
+
         if repo_class:
             import threading
             return repo_class(adapter, message_adapter, message_queue_name, person_id)
