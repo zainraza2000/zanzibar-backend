@@ -1,12 +1,12 @@
 services:
   rabbitmq:
-    image: rococo_sample_rabbitmq
-    container_name: rococo_sample_rabbitmq
+    image: zanzibar_sample_rabbitmq
+    container_name: zanzibar_sample_rabbitmq
     build:
       context: ./services/rabbitmq
       dockerfile: Dockerfile
     volumes:
-      - rococo-sample-rabbitmq-data:/var/lib/rabbitmq/mnesia/
+      - zanzibar-sample-rabbitmq-data:/var/lib/rabbitmq/mnesia/
     networks:
         - backnet
     env_file:
@@ -22,9 +22,9 @@ services:
         retries: 10
 
   postgres:
-    image: rococo_sample_postgres
+    image: zanzibar_sample_postgres
     platform: linux/amd64
-    container_name: rococo_sample_postgres
+    container_name: zanzibar_sample_postgres
     build:
       context: ./services/postgres
       dockerfile: Dockerfile
@@ -35,7 +35,7 @@ services:
       - .env.secrets
       - ${APP_ENV}.env
     volumes:
-        - rococo-sample-postgres-data:/var/lib/postgresql/data
+        - zanzibar-sample-postgres-data:/var/lib/postgresql/data
     ports:
         - "5432:5432"
     healthcheck:
@@ -48,8 +48,8 @@ services:
 
   api:
     restart: always
-    image: rococo_sample_api
-    container_name: rococo_sample_api
+    image: zanzibar_sample_api
+    container_name: zanzibar_sample_api
     build:
         context: .
         dockerfile: ./flask/Dockerfile
@@ -71,13 +71,13 @@ services:
 
   email_transmitter:
     image: ecorrouge/email-transmitter:latest
-    container_name: rococo_sample_email_transmitter
+    container_name: zanzibar_sample_email_transmitter
     restart: unless-stopped
     networks:
       - backnet
     env_file:
-      - ./.env.secrets
-      - ./${APP_ENV}.env
+      - .env.secrets
+      - ${APP_ENV}.env
     environment:
       - MESSAGING_TYPE=RabbitMqConnection
       - PROCESSOR_TYPE=EmailServiceProcessor
@@ -91,10 +91,10 @@ services:
 
 
 volumes:
-  rococo-sample-postgres-data:
-    name: rococo-sample-postgres-data
-  rococo-sample-rabbitmq-data:
-    name: rococo-sample-rabbitmq-data
+  zanzibar-sample-postgres-data:
+    name: zanzibar-sample-postgres-data
+  zanzibar-sample-rabbitmq-data:
+    name: zanzibar-sample-rabbitmq-data
     driver: local
 
 networks:
